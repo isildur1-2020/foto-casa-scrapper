@@ -1,33 +1,46 @@
 import "dotenv/config";
 import { MongoDB } from "./config/MongoDB";
-import { metaExtractorConfig } from "./config/metaScrapper";
 import { Logger } from "./lib/logs";
-import { MetaExtractor } from "./scrapper/MetaExtractor";
-import { CompanyService } from "./services/CompanyService";
-import { MetaScrapper } from "./scrapper/MetaScrapper";
-import { MetaCookies } from "./scrapper/MetaCookies";
-import { ScrapperPersister } from "./scrapper/ScrapperPersister";
-import { Company } from "./models/Company";
+import { FotoCasaExtractor } from "./scrapper/FotoCasaExtractor";
+import { Cookies } from "./lib/Cookies";
+import { Puppeteer } from "./lib/Puppeteer";
+import { Browser, Page } from "puppeteer";
 
-const main = async () => {
-  try {
+class Main {
+  private browser: Browser | null = null;
+  private page: Page | null = null;
+
+  constructor(private puppeteer: Puppeteer) {}
+
+  private async init() {
     await MongoDB.connect();
-    // await Company.deleteMany({ has_contact_info: false });
-    await Company.updateMany({ was_used: true });
-    console.log("Nice");
-    return;
-    const metaScrapper = new MetaExtractor(
-      metaExtractorConfig,
-      new ScrapperPersister(
-        new CompanyService(),
-        new MetaScrapper(new MetaCookies()),
-        metaExtractorConfig.search_terms
-      )
-    );
-    await metaScrapper.getAdsArchive();
-  } catch (err: any) {
-    Logger.printErrMsg(err);
+    await this.preparePuppeteer();
   }
-};
 
-main();
+  private async preparePuppeteer() {
+    if (this.browser === null) {
+      this.browser = await this.puppeteer.launchBrowser();
+    }
+    if (this.page === null) {
+      this.page = await this.puppeteer.openPage();
+    }
+  }
+
+  public async extract() {
+    try {
+      await this.init();
+      const scrapper = new FotoCasaExtractor(
+        this.page!,
+        new Cookies(this.page!)
+      );
+      await scrapper.extract();
+    } catch (err: any) {
+      Logger.printErrMsg(err);
+    }
+  }
+}
+
+(async () => {
+  const scrapper = new Main(new Puppeteer());
+  await scrapper.extract();
+})();

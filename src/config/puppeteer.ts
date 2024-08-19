@@ -4,10 +4,13 @@ import { ARGS } from "./Args";
 
 export const puppeteerConfig = () => {
   const configDev: PuppeteerLaunchOptions = {
-    slowMo: 500,
+    slowMo: 100,
     headless: false,
-    // args: ARGS.PROXY_SERVER ? [`--proxy-server=${ARGS.PROXY_SERVER}`] : [],
-    args: ["--window-size=785,600"],
+    defaultViewport: {
+      width: ARGS.WINDOW_WIDTH,
+      height: ARGS.WINDOW_HEIGHT,
+    },
+    args: [`--window-size=${ARGS.WINDOW_WIDTH},${ARGS.WINDOW_HEIGHT}`],
   };
   const configProd: PuppeteerLaunchOptions = {
     headless: true,

@@ -1,17 +1,19 @@
 import { join } from "path";
 import { writeFile, readFile, access, constants } from "fs/promises";
-import { Cookie, CookieParam } from "puppeteer";
-import { Logger } from "../lib/logs";
+import { Cookie, CookieParam, Page } from "puppeteer";
+import { Logger } from "./logs";
 
-export type MetaCookiesImp = {
-  get: () => Promise<CookieParam[] | null>;
+export type CookiesImp = {
   save: (cookies: Cookie[]) => Promise<void>;
+  set: () => Promise<void>;
 };
 
-export class MetaCookies implements MetaCookiesImp {
+export class Cookies implements CookiesImp {
   private COOKIES_PATH = join(process.cwd(), "cookies.json");
 
-  public async check() {
+  constructor(private puppeteerPage: Page) {}
+
+  private async check() {
     try {
       await access(this.COOKIES_PATH, constants.F_OK);
       Logger.printProgressMsg("[COOKIES CHECK] COOKIES WAS FOUND SUCCESSFULLY");
@@ -22,7 +24,7 @@ export class MetaCookies implements MetaCookiesImp {
     }
   }
 
-  public async get() {
+  private async get() {
     const thereAreCookies = await this.check();
     if (!thereAreCookies) return null;
     const cookiesSaved = await readFile(this.COOKIES_PATH, {
@@ -38,6 +40,13 @@ export class MetaCookies implements MetaCookiesImp {
       Logger.printProgressMsg("[COOKIES SAVE]: COOKIES SAVED SUCCESSFULLY");
     } catch (err) {
       Logger.printErrMsg(`[COOKIES SAVE]: ERR\n${err}`);
+    }
+  }
+
+  public async set() {
+    const cookies = await this.get();
+    if (cookies !== null) {
+      await this.puppeteerPage.setCookie(...cookies);
     }
   }
 }

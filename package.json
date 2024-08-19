@@ -1,7 +1,7 @@
 {
-  "name": "meta-ads-extraction",
+  "name": "foto-casa-scrapper",
   "version": "1.0.0",
-  "description": "Script to extract Meta Advertisement Archive paginated",
+  "description": "Scrapper written in Node Js using Puppeteer to extract real state data from foto casa",
   "main": "src/index.js",
   "scripts": {
     "build": "rimraf dist && tsc",
@@ -12,11 +12,8 @@
     "test": ""
   },
   "keywords": [
-    "META",
-    "ADS",
-    "ARCHIVE",
-    "META",
-    "API",
+    "SCRAPPER",
+    "FOTO CASA",
     "EXTRACTION"
   ],
   "author": "isildur1-2020",
@@ -28,10 +25,9 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
-    "axios": "^1.7.2",
     "chalk": "4.1.2",
     "dotenv": "^16.4.5",
     "mongoose": "^8.4.1",
-    "puppeteer": "^22.11.0"
+    "puppeteer": "^23.1.0"
   }
 }
