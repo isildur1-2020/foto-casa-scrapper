@@ -3,6 +3,7 @@ import { CookiesImp } from "../lib/Cookies";
 import { RealStateBusinessInfo, RealStateMainInfo } from "../lib/constants";
 import { CompanyServiceImp } from "../services/CompanyService";
 import { Logger } from "../lib/logs";
+import { USER_AGENT } from "../lib/utils";
 
 export class FotoCasaScrapper {
   constructor(
@@ -38,6 +39,7 @@ export class FotoCasaScrapper {
   }
 
   private async init(URL: string) {
+    await this.page.setUserAgent(USER_AGENT.MAC_OS);
     await this.cookies.set();
     await this.page.goto(URL);
     await this.acceptCookies();
