@@ -74,11 +74,14 @@ export class FotoCasaScrapper {
         return {
           companyName: companyName.textContent ?? "N/A",
           infoLink: infoLink.href ?? "N/A",
-          baseURL: URL,
         };
       });
     }
-    return await this.page.evaluate(handleExtraction);
+    const mainInfo = await this.page.evaluate(handleExtraction);
+    return mainInfo.map((el) => ({
+      ...el,
+      baseURL: URL,
+    }));
   }
 
   private async extractBusinessInfo({
