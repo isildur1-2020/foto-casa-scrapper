@@ -1,6 +1,7 @@
 export type RealStateMainInfo = {
   companyName: string;
   infoLink: string;
+  baseURL: string;
 };
 
 export type RealStateBusinessInfo = RealStateMainInfo & { email: string };
