@@ -5,8 +5,8 @@ services:
       context: .
       target: prod
       dockerfile: Dockerfile
-    image: meta-ads-extraction
-    container_name: meta-ads-extraction
+    image: foto-casa-scrapper
+    container_name: foto-casa-scrapper
     networks:
       - scrapper-network
     environment:
