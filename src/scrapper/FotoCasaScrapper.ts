@@ -16,15 +16,24 @@ export class FotoCasaScrapper {
     await this.init(BASE_URL);
     const lastPage = await this.getLastPage(BASE_URL);
     Logger.printProgressMsg(`[SCRAPPER]: LAST PAGE ${lastPage} `);
-    for (let i = 1; i <= lastPage; i++) {
+
+    let i = 1;
+    let next = false;
+    while (!next || i <= lastPage) {
       Logger.printProgressMsg(`\n[SCRAPPER]: PAGE NUMBER ${i}`);
       Logger.printProgressMsg(`[SCRAPPER]: BASE URL ${BASE_URL}`);
+
+      next = true;
       const AUX_URL = `${BASE_URL}?pagina=${i}`;
       const ctx = await this.browser.createBrowserContext();
       this.page = await ctx.newPage();
       await this.init(AUX_URL);
 
       const realStateMainData = await this.extractMainInfo(AUX_URL);
+      if (!realStateMainData.length) {
+        next = false;
+        continue;
+      }
 
       let extractionPromises: Promise<RealStateBusinessInfo>[] = [];
       for (let realState of realStateMainData) {
@@ -34,12 +43,14 @@ export class FotoCasaScrapper {
       this.printBusinessData(realStateBusinessData);
       await this.companyService.createMany(realStateBusinessData);
       ctx.close();
+      i++;
     }
   }
 
   private async init(URL: string) {
     await this.cookies.set();
     await this.page.goto(URL);
+    this.page.setDefaultNavigationTimeout(0);
     await this.acceptCookies();
   }
 
@@ -53,7 +64,7 @@ export class FotoCasaScrapper {
       const lastPageText = document.querySelector(
         ".sui-MoleculePagination-item.current.primary span"
       ) as HTMLSpanElement;
-      return lastPageText.textContent;
+      return lastPageText?.textContent ?? 0;
     };
     const lastPageText = await this.page.evaluate(handleGetLastPage);
     return Number(lastPageText);
@@ -72,8 +83,8 @@ export class FotoCasaScrapper {
         ) as HTMLAnchorElement;
 
         return {
-          companyName: companyName.textContent ?? "N/A",
-          infoLink: infoLink.href ?? "N/A",
+          companyName: companyName?.textContent ?? "N/A",
+          infoLink: infoLink?.href ?? "N/A",
         };
       });
     }
@@ -93,18 +104,19 @@ export class FotoCasaScrapper {
   }): Promise<RealStateBusinessInfo> {
     const { infoLink } = realState;
     const newPage = await ctx.newPage();
-    await newPage.goto(infoLink);
+    newPage.setDefaultNavigationTimeout(0);
+    await newPage.goto(infoLink, { waitUntil: "load" });
     const emailElement = await newPage.evaluate(() => {
       const emailElement = document.querySelector(
         ".re-AgencyBanner-contactInfo > a"
       ) as HTMLAnchorElement;
-      return emailElement.href;
+      return emailElement?.href ?? "N/A";
     });
     await newPage.close();
 
     return {
       ...realState,
-      email: emailElement.split(":")[1],
+      email: emailElement.split(":")?.[1] ?? "N/A",
     };
   }
 

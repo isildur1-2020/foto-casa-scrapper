@@ -21,24 +21,20 @@ class Main {
   }
 
   private async preparePuppeteer() {
-    if (this.browser === null) {
-      this.browser = await this.puppeteer.launchBrowser();
-    }
-    if (this.page === null) {
-      this.page = await this.puppeteer.openPage();
-    }
+    this.browser = await this.puppeteer.launchBrowser();
+    this.page = await this.puppeteer.openPage();
   }
 
   public async extract() {
     try {
-      await this.init();
-      const scrapper = new FotoCasaScrapper(
-        this.page!,
-        this.browser!,
-        new Cookies(this.page!),
-        new CompanyService(Company)
-      );
       for (let item of links_to_extract) {
+        await this.init();
+        const scrapper = new FotoCasaScrapper(
+          this.page!,
+          this.browser!,
+          new Cookies(this.page!),
+          new CompanyService(Company)
+        );
         await scrapper.extract({
           BASE_URL: item,
         });
